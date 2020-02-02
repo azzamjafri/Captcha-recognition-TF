@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy import misc
 from PIL import Image
+from matplotlib.pyplot import imread
 
 
 convert = ['a','b','c','d','e','f','g','t','u','v','w','x','y','z','1','2','3','4','5','6']
@@ -14,7 +15,7 @@ revert = {'a':0,'b':1,'c':2,'d':3,'e':4,'f':5,'g':6,'t':7,'u':8,'v':9,
 
 f2 = open('Captcha/pass3.txt')
 
-print "   Loading..."
+print("   Loading...")
 
 prepath = 'Captcha/lv3/'
 
@@ -25,9 +26,9 @@ for Im in range(15000):
 	grayim = np.dot(img[...,:3],[0.299,0.587,0.114])
 	dataX.append(grayim)
 
-print "   loaded."
+print("   loaded.")
 labelY = f2.read().split('\n')[:15000]
-print '   Prepairing...'
+print('   Prepairing...')
 def Num2Char(n): 
 	return convert[n];
 
@@ -179,7 +180,7 @@ def showcapt(arr):
 
 
 
-print '  training...'
+print('  training...')
 # Launch the graph
 with tf.Session() as sess:
 	#load old model
@@ -195,23 +196,23 @@ with tf.Session() as sess:
 	#training
 	for step in range(40):
 		#Optimizer model by training
-		for start, end in zip(range(0, len(trX), batch_size), range(batch_size, len(trX), batch_size)):
+		for start, end in zip(list(range(0, len(trX), batch_size)), list(range(batch_size, len(trX), batch_size))):
 			sess.run(optimizer,feed_dict={X:np.array(trX[start:end]).reshape(-1,40,150,1)/256.0,Y:trY[start:end],keep_prob:dropout})
 		
 		# Calculate accuracy
 		acc = 0
 		batch_loss = 0
-		for start, end in zip(range(0, len(teX), batch_size), range(batch_size, len(teX), batch_size)):
+		for start, end in zip(list(range(0, len(teX), batch_size)), list(range(batch_size, len(teX), batch_size))):
 			acc = sess.run(accuracy,feed_dict={X:np.array(teX[start:end]).reshape(-1,40,150,1)/256.0,Y:trY[start:end],keep_prob:1.})
 			accuracies.append(acc)
 			#
 			batch_loss=sess.run(loss,feed_dict={X:np.array(teX[start:end]).reshape(-1,40,150,1)/256.0,Y:trY[start:end],keep_prob:1.})
 			losses.append(batch_loss)
-		print '#Step %d, loss = %.4f, accuracy = %.4f'%(step,batch_loss,acc)
-		print '\t\t@losses = %.4f, accuracies = %.4f'%(
+		print('#Step %d, loss = %.4f, accuracy = %.4f'%(step,batch_loss,acc))
+		print('\t\t@losses = %.4f, accuracies = %.4f'%(
 			sum(losses)/len(losses), 
 			sum(accuracies)/len(accuracies)
-			)
+			))
 		# Show word predict
 		pp = sess.run(predict,feed_dict={X:np.array(teX[:batch_size]).reshape(-1,40,150,1)/256.0,Y:trY[:batch_size],keep_prob:1.})
 		p = tf.reshape(pp, [batch_size,5,20])
@@ -220,13 +221,13 @@ with tf.Session() as sess:
 		ff = teY[:batch_size]
 		f = tf.reshape(ff,[batch_size,5,20])
 		max_idx_f = tf.argmax(f,2).eval()
-		print 'prediction and fact : '
+		print('prediction and fact : ')
 		for tmp in range(20):
-			print showcapt(max_idx_p[tmp]),
-		print
+			print(showcapt(max_idx_p[tmp]), end=' ')
+		print()
 		for tmp in range(20):	
-			print showcapt(max_idx_f[tmp]),
-		print
+			print(showcapt(max_idx_f[tmp]), end=' ')
+		print()
 		if step % 5 == 0 or step == 39:
 			saver.save(sess, "train3.data")
-print 'completed!'
+print('completed!')
